@@ -230,7 +230,15 @@ func printPrs(w io.Writer, totalCount int, prs ...api.PullRequest) {
 			} else if reviews.ReviewRequired {
 				fmt.Fprint(w, utils.Yellow("- Review required"))
 			} else if reviews.Approved {
-				fmt.Fprint(w, utils.Green("✓ Approved"))
+				var totalApprovals int
+
+				for _, review := range pr.Reviews.Nodes {
+					if review.State == "APPROVED" {
+						totalApprovals++
+					}
+				}
+
+				fmt.Fprint(w, utils.Green("✓ "+strconv.Itoa(totalApprovals)+" Approved"))
 			}
 		} else {
 			fmt.Fprintf(w, " - %s", shared.StateTitleWithColor(pr))

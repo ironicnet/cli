@@ -355,6 +355,11 @@ func PullRequests(client *Client, repo ghrepo.Interface, currentPRNumber int, cu
 		}
 		isCrossRepository
 		isDraft
+		reviews(last: 100) {
+			nodes {
+				state
+			}
+		}
 		%s
 	}
 	fragment prWithReviews on PullRequest {

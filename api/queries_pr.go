@@ -357,6 +357,9 @@ func PullRequests(client *Client, repo ghrepo.Interface, currentPRNumber int, cu
 		isDraft
 		reviews(last: 100) {
 			nodes {
+				author {
+					login
+				}
 				state
 			}
 		}

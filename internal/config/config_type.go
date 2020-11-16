@@ -10,11 +10,82 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const (
-	defaultGitProtocol = "https"
-	PromptsDisabled    = "disabled"
-	PromptsEnabled     = "enabled"
-)
+type ConfigOption struct {
+	Key           string
+	Description   string
+	DefaultValue  string
+	AllowedValues []string
+}
+
+var configOptions = []ConfigOption{
+	{
+		Key:           "git_protocol",
+		Description:   "the protocol to use for git clone and push operations",
+		DefaultValue:  "https",
+		AllowedValues: []string{"https", "ssh"},
+	},
+	{
+		Key:          "editor",
+		Description:  "the text editor program to use for authoring text",
+		DefaultValue: "",
+	},
+	{
+		Key:           "prompt",
+		Description:   "toggle interactive prompting in the terminal",
+		DefaultValue:  "enabled",
+		AllowedValues: []string{"enabled", "disabled"},
+	},
+	{
+		Key:          "pager",
+		Description:  "the terminal pager program to send standard output to",
+		DefaultValue: "",
+	},
+}
+
+func ConfigOptions() []ConfigOption {
+	return configOptions
+}
+
+func ValidateKey(key string) error {
+	for _, configKey := range configOptions {
+		if key == configKey.Key {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("invalid key")
+}
+
+type InvalidValueError struct {
+	ValidValues []string
+}
+
+func (e InvalidValueError) Error() string {
+	return "invalid value"
+}
+
+func ValidateValue(key, value string) error {
+	var validValues []string
+
+	for _, v := range configOptions {
+		if v.Key == key {
+			validValues = v.AllowedValues
+			break
+		}
+	}
+
+	if validValues == nil {
+		return nil
+	}
+
+	for _, v := range validValues {
+		if v == value {
+			return nil
+		}
+	}
+
+	return &InvalidValueError{ValidValues: validValues}
+}
 
 // This interface describes interacting with some persistent configuration for gh.
 type Config interface {
@@ -178,7 +249,7 @@ func NewBlankRoot() *yaml.Node {
 					},
 					{
 						Kind:  yaml.ScalarNode,
-						Value: PromptsEnabled,
+						Value: "enabled",
 					},
 					{
 						HeadComment: "A pager program to send command output to, e.g. \"less\". Set the value to \"cat\" to disable the pager.",
@@ -494,13 +565,10 @@ func (c *fileConfig) parseHosts(hostsEntry *yaml.Node) ([]*HostConfig, error) {
 }
 
 func defaultFor(key string) string {
-	// we only have a set default for one setting right now
-	switch key {
-	case "git_protocol":
-		return defaultGitProtocol
-	case "prompt":
-		return PromptsEnabled
-	default:
-		return ""
+	for _, co := range configOptions {
+		if co.Key == key {
+			return co.DefaultValue
+		}
 	}
+	return ""
 }

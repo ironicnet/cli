@@ -68,3 +68,34 @@ func Test_defaultConfig(t *testing.T) {
 	expansion, _ := aliases.Get("co")
 	assert.Equal(t, expansion, "pr checkout")
 }
+
+func Test_ValidateValue(t *testing.T) {
+	err := ValidateValue("git_protocol", "sshpps")
+	assert.EqualError(t, err, "invalid value")
+
+	err = ValidateValue("git_protocol", "ssh")
+	assert.Nil(t, err)
+
+	err = ValidateValue("editor", "vim")
+	assert.Nil(t, err)
+
+	err = ValidateValue("got", "123")
+	assert.Nil(t, err)
+}
+
+func Test_ValidateKey(t *testing.T) {
+	err := ValidateKey("invalid")
+	assert.EqualError(t, err, "invalid key")
+
+	err = ValidateKey("git_protocol")
+	assert.NoError(t, err)
+
+	err = ValidateKey("editor")
+	assert.NoError(t, err)
+
+	err = ValidateKey("prompt")
+	assert.NoError(t, err)
+
+	err = ValidateKey("pager")
+	assert.NoError(t, err)
+}

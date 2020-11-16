@@ -78,7 +78,7 @@ const fragments = `
 		url
 		state
 		updatedAt
-		labels(first: 3) {
+		labels(first: 100) {
 			nodes {
 				name
 			}
@@ -251,13 +251,13 @@ func IssueList(client *Client, repo ghrepo.Interface, state string, labels []str
 
 	if milestoneString != "" {
 		var milestone *RepoMilestone
-		if milestoneNumber, err := strconv.Atoi(milestoneString); err == nil {
-			milestone, err = MilestoneByNumber(client, repo, milestoneNumber)
+		if milestoneNumber, err := strconv.ParseInt(milestoneString, 10, 32); err == nil {
+			milestone, err = MilestoneByNumber(client, repo, int32(milestoneNumber))
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			milestone, err = MilestoneByTitle(client, repo, milestoneString)
+			milestone, err = MilestoneByTitle(client, repo, "all", milestoneString)
 			if err != nil {
 				return nil, err
 			}
